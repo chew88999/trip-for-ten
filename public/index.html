@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trip for Ten</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <!-- Login -->
+  <main id="login-view" class="login" hidden>
+    <form id="login-form" class="card login-card">
+      <h1>Trip for Ten</h1>
+      <p class="muted">Sign in to plan the trip together.</p>
+      <label>Name
+        <select id="login-name" required></select>
+      </label>
+      <label>Password
+        <input id="login-password" type="password" autocomplete="current-password" required>
+      </label>
+      <p id="login-error" class="error" hidden></p>
+      <button class="primary" type="submit">Sign in</button>
+    </form>
+  </main>
+
+  <!-- App -->
+  <div id="app-view" hidden>
+    <header class="topbar">
+      <div>
+        <h1 id="trip-name"></h1>
+        <p id="trip-meta" class="muted"></p>
+      </div>
+      <div class="user">
+        <span id="countdown" class="pill"></span>
+        <span id="me-name"></span>
+        <button id="logout-btn" class="ghost">Sign out</button>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button data-tab="tasks" class="active">Tasks</button>
+      <button data-tab="timeline">Timeline</button>
+      <button data-tab="expenses">Who owes what</button>
+      <button data-tab="people">People &amp; trip</button>
+    </nav>
+
+    <section id="tab-tasks" class="tab">
+      <div class="progress"><div id="progress-bar"></div></div>
+      <p id="progress-label" class="muted small"></p>
+      <div class="toolbar">
+        <input id="f-search" type="search" placeholder="Search tasks">
+        <select id="f-assignee"></select>
+        <select id="f-status">
+          <option value="">All statuses</option>
+          <option value="open">Open (not done)</option>
+          <option value="todo">To do</option>
+          <option value="in_progress">In progress</option>
+          <option value="done">Done</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <select id="f-category"><option value="">All categories</option></select>
+        <button id="new-task-btn" class="primary">+ New task</button>
+      </div>
+      <ul id="task-list" class="task-list"></ul>
+    </section>
+
+    <section id="tab-timeline" class="tab" hidden>
+      <div id="conflicts"></div>
+      <div id="gantt" class="gantt"></div>
+    </section>
+
+    <section id="tab-expenses" class="tab" hidden>
+      <div class="grid-2">
+        <div class="card">
+          <h2>Balances</h2>
+          <div class="table-wrap"><table class="table" id="balance-table"></table></div>
+          <p class="muted small" style="margin-top:6px">Balance = paid − share + paid back (sent minus received).</p>
+          <h3>Suggested payments to settle up</h3>
+          <ul id="payments" class="plain"></ul>
+        </div>
+        <form id="expense-form" class="card">
+          <h2 id="expense-form-title">Add an expense</h2>
+          <input type="hidden" id="ex-id">
+          <label>What was it for?<input id="ex-desc" required placeholder="e.g. Hotel deposit"></label>
+          <div class="row">
+            <label>Amount<input id="ex-amount" type="number" min="0.01" step="0.01" required></label>
+            <label>Paid by<select id="ex-paid-by" required></select></label>
+            <label>Date<input id="ex-date" type="date"></label>
+          </div>
+          <label>Related task (optional)<select id="ex-task"></select></label>
+          <fieldset>
+            <legend>Split</legend>
+            <label class="inline"><input type="radio" name="ex-split" value="all" checked> Everyone equally</label>
+            <label class="inline"><input type="radio" name="ex-split" value="some"> Selected people equally</label>
+            <label class="inline"><input type="radio" name="ex-split" value="custom"> Custom amounts</label>
+            <div id="ex-split-people" class="people-grid"></div>
+            <p id="ex-split-hint" class="muted small"></p>
+          </fieldset>
+          <p id="ex-error" class="error" hidden></p>
+          <div class="actions">
+            <button type="button" id="ex-cancel" class="ghost" hidden>Cancel edit</button>
+            <button class="primary" type="submit">Save expense</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Expenses</h2>
+        <table class="table" id="expense-table"></table>
+      </div>
+      <div class="card">
+        <h2>Repayments</h2>
+        <table class="table" id="settlement-table"></table>
+      </div>
+    </section>
+
+    <section id="tab-people" class="tab" hidden>
+      <div class="grid-2">
+        <div class="card">
+          <h2>Travelers</h2>
+          <table class="table" id="member-table"></table>
+          <form id="add-member-form" class="row">
+            <input id="new-member-name" placeholder="New traveler name" required>
+            <button class="primary">Add</button>
+          </form>
+          <p class="muted small">New travelers sign in with the default password and can change it below.</p>
+        </div>
+        <div>
+          <form id="trip-form" class="card">
+            <h2>Trip details</h2>
+            <label>Trip name<input id="trip-f-name" required></label>
+            <label>Destination<input id="trip-f-destination" required></label>
+            <div class="row">
+              <label>Start<input id="trip-f-start" type="date" required></label>
+              <label>End<input id="trip-f-end" type="date" required></label>
+              <label>Currency<input id="trip-f-currency" maxlength="3" required></label>
+            </div>
+            <label>Notes<textarea id="trip-f-notes" rows="2"></textarea></label>
+            <div class="actions"><button class="primary">Save trip</button></div>
+          </form>
+          <form id="password-form" class="card">
+            <h2>Change my password</h2>
+            <label>Current password<input id="pw-current" type="password" required autocomplete="current-password"></label>
+            <label>New password<input id="pw-new" type="password" required minlength="4" autocomplete="new-password"></label>
+            <div class="actions"><button class="primary">Update password</button></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Task editor -->
+  <dialog id="task-dialog">
+    <form id="task-form" method="dialog">
+      <h2 id="task-dialog-title">Edit task</h2>
+      <input type="hidden" id="t-id">
+      <label>Title<input id="t-title" required></label>
+      <label>Description<textarea id="t-description" rows="3"></textarea></label>
+      <div class="row">
+        <label>Status<select id="t-status">
+          <option value="todo">To do</option><option value="in_progress">In progress</option>
+          <option value="done">Done</option><option value="cancelled">Cancelled</option>
+        </select></label>
+        <label>Priority<select id="t-priority">
+          <option value="low">Low</option><option value="medium">Medium</option>
+          <option value="high">High</option><option value="critical">Critical</option>
+        </select></label>
+        <label>Category<select id="t-category"></select></label>
+      </div>
+      <div class="row">
+        <label>Start<input id="t-start" type="date"></label>
+        <label>Due<input id="t-due" type="date"></label>
+        <label>Est. cost<input id="t-cost" type="number" min="0" step="0.01"></label>
+      </div>
+      <div class="row">
+        <label>Owner<select id="t-owner"></select></label>
+      </div>
+      <fieldset>
+        <legend>Helpers</legend>
+        <div id="t-helpers" class="people-grid"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Must be finished first</legend>
+        <input id="t-dep-search" type="search" placeholder="Filter tasks">
+        <div id="t-deps" class="dep-list"></div>
+      </fieldset>
+      <p id="t-blocks" class="muted small"></p>
+      <details id="t-history-wrap">
+        <summary>Edit history</summary>
+        <ul id="t-history" class="plain small"></ul>
+      </details>
+      <p id="t-error" class="error" hidden></p>
+      <div class="actions">
+        <button type="button" id="t-delete" class="danger">Delete</button>
+        <span class="spacer"></span>
+        <button type="button" id="t-cancel" class="ghost">Cancel</button>
+        <button type="submit" class="primary" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
